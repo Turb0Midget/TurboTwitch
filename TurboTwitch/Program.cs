@@ -36,6 +36,7 @@ namespace TurboTwitch
             // R buff : TwitchFullAutomatic
             // Q buff : TwitchHideInShadows
             // Passive : TwitchDeadlyVenomMarker
+            // GetValue<StringList>().SelectedIndex
 
             Config = new Menu("TurboTwitch", "Twitch", true);
             Orbwalker = new Orbwalking.Orbwalker(Config.AddSubMenu(new Menu("Orbwalker", "Orbwalker")));
@@ -88,38 +89,46 @@ namespace TurboTwitch
             laneclear.AddItem(new MenuItem("LaneclearWhit", "Minions to hit with W").SetValue(new Slider(3, 10, 0)));
             laneclear.AddItem(new MenuItem("LaneclearE", "Laneclear with E").SetValue(true));
             laneclear.AddItem(new MenuItem("LaneclearEpoison", "Minimum minions to be poisoned").SetValue(new Slider(3, 10, 0)));
-            laneclear.AddItem(new MenuItem("LaneclearEstacks", "Minimum Poison stacks per minion to use E").SetValue(new Slider(3, 10, 0)));          
+            laneclear.AddItem(new MenuItem("LaneclearEstacks", "Minimum Poison stacks per minion to use E").SetValue(new Slider(3, 10, 0)));
             laneclear.AddItem(new MenuItem("LaneclearMana", "Mana % for laneclear").SetValue(new Slider(30, 100, 0)));
 
             jungleclear.AddItem(new MenuItem("JungleclearW", "Jungleclear with W").SetValue(true));
             jungleclear.AddItem(new MenuItem("JungleclearE", "Jungleclear with E").SetValue(true));
             jungleclear.AddItem(new MenuItem("JungleclearMana", "Jungleclear Mana").SetValue(new Slider(40, 100, 0)));
-            
+
             harass.AddItem(new MenuItem("HarassE", "Use E").SetValue(true));
             harass.AddItem(new MenuItem("HarassEMana", "Mana % for E").SetValue(new Slider(50, 100, 0)));
 
             killsteal.AddItem(new MenuItem("KSE", "Killsteal with E").SetValue(true));
 
+          //misc.AddItem(new MenuItem("Trinket", "Auto Buy Trinket").SetValue(new StringList(new[] { Scrying.Orb.ToString(), Warding.Totem.ToString(), Sweeper.Lens.ToString() }, 3)));
+            misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKS", "Secure Buffs / Objectives with E").SetValue(true));
+            misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSB", "Secure Blue with E").SetValue(false));
+            misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSR", "Secure Red with E").SetValue(false));
+            misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSD", "Secure Dragon with E").SetValue(true));
+            misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSBAR", "Secure Baron with E").SetValue(true));
+            misc.AddItem(new MenuItem("recall", "StealthRecall").SetValue(new KeyBind('T', KeyBindType.Press)));
             misc.AddItem(new MenuItem("AntiGapW", "Auto W in gapclosers").SetValue(true));
             misc.AddItem(new MenuItem("AutoQ", "Auto use Q when below hp %").SetValue(false));
             misc.AddItem(new MenuItem("AutoQHP", "HP %").SetValue(new Slider(10, 100, 0)));
 
-            drawing.AddItem(new MenuItem("DisableDraw", "Disable All Drawings").SetValue(false));
-            drawing.AddItem(new MenuItem("DrawW", "Draw W Range").SetValue(new Circle(true, System.Drawing.Color.Blue)));
-            drawing.AddItem(new MenuItem("DrawE", "Draw E Range").SetValue(new Circle(true, System.Drawing.Color.Blue)));
-            drawing.AddItem(new MenuItem("DrawR", "Draw R Range").SetValue(new Circle(true, System.Drawing.Color.Blue)));
+            drawing.AddItem(new MenuItem("DrawDisable", "Disable All Drawings").SetValue(false));
+            drawing.AddItem(new MenuItem("stealthstatus", "Draw Stealth Recall Status").SetValue(true));
+            drawing.AddItem(new MenuItem("DrawW", "Draw W Range").SetValue(new Circle(true, Color.Blue)));
+            drawing.AddItem(new MenuItem("DrawE", "Draw E Range").SetValue(new Circle(true, Color.Blue)));
+            drawing.AddItem(new MenuItem("DrawR", "Draw R Range").SetValue(new Circle(true, Color.Blue)));
 
-            // misc > Auto blue trinket
-            // misc > Auto Q on zed ult / caitultbuff
-            // misc > Steal baron / dragon / red / blue with E
-            // misc > additem stealth recall
             // draw > Draw E stacks on enemy
-            // draw > Draw ult seconds under player
+            // draw > Draw ult seconds under player\
+            // draw enemy poisoned (boven de map)
             // Combo > R = line skillshot with no collision > use r if enemy.hitcount >=2 or 3
             // Combo > if enemy is out of aa range and killable and is in R range && config item R  > R.Cast > enemies to use R
-            // Combo > USE Q SNEAKY 3000 RANGE if Q.level == 5 / 2500 RANGE if Q.level == 3 etc
-            // Combo > Q logic if play has ghostblade && config item ghostblade cast ghostblade && calc edmg + aa * ? + 5
 
+            // TO DO >  misc > Auto Q on zed ult / caitultbuff
+            // TO DO >  Combo > Q logic if play has ghostblade && config item ghostblade cast ghostblade && calc edmg + aa * ? + 5
+            // TO DO >  Combo > USE Q SNEAKY 3000 RANGE if Q.level == 5 / 2500 RANGE if Q.level == 3 etc
+
+            // Feature DrawingS are blue when ready en turn red when can't be used 
 
             Config.AddToMainMenu();
 
@@ -130,6 +139,9 @@ namespace TurboTwitch
         }
         private static void Game_OnGameUpdate(EventArgs args)
         {
+            if (Player.IsDead)
+                return;
+
             switch (Orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -166,8 +178,20 @@ namespace TurboTwitch
             {
                 AutoE();
             }
-
+            if (Config.Item("JungleKS").GetValue<bool>())
+            {
+                DBS();
+            }
+            if (Config.Item("recall").GetValue<KeyBind>().Active)
+            {
+                if (Q.IsReady() && Recall.IsReady())
+                {
+                    Q.Cast();
+                    Recall.Cast();
+                }
+            }
         }
+
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
             if (W.IsReady() && gapcloser.Sender.IsValidTarget(W.Range)
@@ -352,7 +376,7 @@ namespace TurboTwitch
                 cutlass.Cast(target);
 
             //GHOSTBLADE
-            if (ghostblade.IsReady() && ghostblade.IsOwned(Player) && target.IsValidTarget(E.Range -50)
+            if (ghostblade.IsReady() && ghostblade.IsOwned(Player) && target.IsValidTarget(E.Range - 50)
                 && Config.Item("ghostblade").GetValue<bool>())
 
                 ghostblade.Cast();
@@ -425,7 +449,7 @@ namespace TurboTwitch
                 var MinionsA = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range);
                 var allMinionsW = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, W.Range + W.Width);
                 var Wfarmpos = Q.GetCircularFarmLocation(allMinionsW, W.Width);
- 
+
                 if (MinionsA.Count == 0)
                     return;
 
@@ -452,12 +476,12 @@ namespace TurboTwitch
             }
         }
         private static void Jungleclear()
-        {         
+        {
             foreach (var minion in
                     ObjectManager.Get<Obj_AI_Minion>().Where(minion => minion.IsValidTarget() && minion.IsEnemy &&
                     minion.Distance(Player.ServerPosition) <= E.Range))
             {
-                var MinionsE = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range + E.Width, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);       
+                var MinionsE = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range + E.Width, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
                 var Efarmpos = E.GetCircularFarmLocation(MinionsE, Q.Width);
                 var MinionsW = MinionManager.GetMinions(ObjectManager.Player.ServerPosition, E.Range + E.Width, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth);
                 var Wfarmpos = E.GetCircularFarmLocation(MinionsE, Q.Width);
@@ -471,41 +495,96 @@ namespace TurboTwitch
                     && Wfarmpos.MinionsHit >= 1 && minion.IsValidTarget(W.Range)
                     && Player.ManaPercent >= Config.Item("JungleclearMana").GetValue<Slider>().Value)
                     W.Cast(Wfarmpos.Position);
-            }         
+            }
         }
         private static void OnDraw(EventArgs args)
         {
+            var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
+            var targetpos = Drawing.WorldToScreen(Player.Position);
+            var targetpos2 = Drawing.WorldToScreen(target.Position);
+
             if (Config.Item("DrawDisable").GetValue<bool>())
                 return;
+            if (Config.Item("stealthstatus").GetValue<bool>())
+            {               
+                if (Q.IsReady() && Recall.IsReady())
+                {
+                    Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.SteelBlue, "STEALTH RECALL READY");
+                }
+                else if (Player.HasBuff("TwitchHideInShadows") && Player.HasBuff("Recall"))
+                    Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Yellow, "RECALLING...");
+                else if (!Player.HasBuff("recall"))
+                    Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Red, "Q IS NOT AVAILABLE");
+            }           
 
-            //DRAW SPELL RANGES
             if (Config.Item("DrawW").GetValue<Circle>().Active)
             {
-                if (W.Level > 0)
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, W.IsReady() ? 
-                    Config.Item("DrawW").GetValue<Circle>().Color : System.Drawing.Color.Red);                 
+                Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, W.IsReady() ?
+                    Config.Item("DrawW").GetValue<Circle>().Color : System.Drawing.Color.Red);
             }
 
-            if (Config.Item("DrawW").GetValue<Circle>().Active)
-                if (W.Level > 0)
-                    Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range,
-                        W.IsReady() ? Config.Item("DrawW").GetValue<Circle>().Color : System.Drawing.Color.Red);
 
 
             if (Config.Item("DrawE").GetValue<Circle>().Active)
             {
-                if (E.Level > 0)
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, E.IsReady() ?
                     Config.Item("DrawE").GetValue<Circle>().Color : System.Drawing.Color.Red);
             }
 
 
+
             if (Config.Item("DrawR").GetValue<Circle>().Active)
             {
-                if (R.Level > 0)
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, R.Range, R.IsReady() ?
                     Config.Item("DrawR").GetValue<Circle>().Color : System.Drawing.Color.Red);
-            }                                       
+            }
+
         }
+        private static void DBS()
+        {
+            var blueBuff =
+                    ObjectManager.Get<Obj_AI_Minion>()
+                        .Where(x => x.BaseSkinName.Contains("Blue"))
+                        .Where(x => Player.GetSpellDamage(x, SpellSlot.E) > x.Health)
+                        .FirstOrDefault(x => (x.IsAlly) || (x.IsEnemy));
+            var redbuff =
+                    ObjectManager.Get<Obj_AI_Minion>()
+                        .Where(x => x.BaseSkinName.Contains("Red"))
+                        .Where(x => Player.GetSpellDamage(x, SpellSlot.E) > x.Health)
+                        .FirstOrDefault(x => (x.IsAlly) || (x.IsEnemy));
+            var Dragon =
+                    ObjectManager.Get<Obj_AI_Minion>()
+                        .Where(x => x.BaseSkinName.Contains("Dragon"))
+                        .Where(x => Player.GetSpellDamage(x, SpellSlot.E) > x.Health)
+                        .FirstOrDefault(x => (x.IsAlly) || (x.IsEnemy));
+            var Baron =
+                    ObjectManager.Get<Obj_AI_Minion>()
+                        .Where(x => x.BaseSkinName.Contains("Baron"))
+                        .Where(x => Player.GetSpellDamage(x, SpellSlot.E) > x.Health)
+                        .FirstOrDefault(x => (x.IsAlly) || (x.IsEnemy));
+
+
+            if (Config.Item("JungleKSB").GetValue<bool>())
+            {               
+                if (blueBuff != null)
+                    E.Cast(blueBuff);
+            }
+            if (Config.Item("JungleKSR").GetValue<bool>())
+            {               
+                if (redbuff != null)
+                    E.Cast(redbuff);
+            }
+            if (Config.Item("JungleKSD").GetValue<bool>())
+            {                
+                if (Dragon != null)
+                    E.Cast(Dragon);
+            }
+            if (Config.Item("JungleKSBAR").GetValue<bool>())
+            {                
+                if (Baron != null)
+                    E.Cast(Baron);
+            }
+        }
+        //Credits ScienceARK  Buffsteal , xcsoft Stealrecall
     }
 }
