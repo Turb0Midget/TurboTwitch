@@ -71,7 +71,8 @@ namespace TurboTwitch
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOAslider", "Stacks Amount").SetValue(new Slider(4, 6, 1)));
 
             combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(false));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1", "Use R").SetValue(false));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(false));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
 
 
             combo.SubMenu("Item Settings").AddItem(new MenuItem("UseItems", "Use Items").SetValue(true));
@@ -126,7 +127,11 @@ namespace TurboTwitch
             // TO DO >  Combo > Custom E calculation for perfect E executes
             // TO DO >  Draw > Enemies poisoned (X;Y;A;M)
             // TO DO >  Draw > R Timer / Q Timer
+
             // TO DO >  Combo > R LOGIC
+            // R if hit 3 enemies and allies are near enemies
+            // R if 1v1 mode is enabled and target gaat uit of AA range en is killable door 2/3 aa's
+            // R ks through enemy champs/minions
 
             // Feature DrawingS are blue when ready en turn red when can't be used 
 
@@ -148,6 +153,7 @@ namespace TurboTwitch
                     QLogic();
                     WLogic();
                     ELogic();
+                    RLogic();
                     Items();
                     break;
                 case Orbwalking.OrbwalkingMode.Mixed:
@@ -191,7 +197,6 @@ namespace TurboTwitch
                 }
             }
         }
-
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
             if (W.IsReady() && gapcloser.Sender.IsValidTarget(W.Range)
@@ -388,6 +393,52 @@ namespace TurboTwitch
                 && Config.Item("ghostblade").GetValue<bool>())
 
                 ghostblade.Cast();
+
+        }
+        private static void RLogic()
+        {
+            var target = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical);
+
+            foreach (var enemy in
+                ObjectManager.Get<Obj_AI_Hero>()
+                    .Where(x => x.IsValidTarget(R.Range))
+                    .Where(x => !x.IsZombie)
+                    .Where(x => !x.IsDead))
+            {
+                if (Player.IsDead || !Config.Item("UseR").GetValue<bool>()
+                    || !R.IsReady() || target.IsInvulnerable)
+                    return;
+
+
+
+
+
+
+                //WHEN TO NOT USE R
+
+
+
+
+
+
+
+
+
+                //WHEN TO USE R
+
+
+
+
+
+
+
+
+                // R if hit 3 enemies and allies are near enemies
+                // R if 1v1 mode is enabled and target gaat uit of AA range en is killable door 2/3 aa's
+            }
+
+
+
 
         }
         private static void Harass()
