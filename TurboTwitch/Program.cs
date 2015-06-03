@@ -29,7 +29,7 @@ namespace TurboTwitch
             Q = new Spell(SpellSlot.Q);
             W = new Spell(SpellSlot.W, 950f);
             E = new Spell(SpellSlot.E, 1200);
-            R = new Spell(SpellSlot.R, 850);
+            R = new Spell(SpellSlot.R, 1050);
             Recall = new Spell(SpellSlot.Recall);
 
             W.SetSkillshot(0.25f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
@@ -55,7 +55,7 @@ namespace TurboTwitch
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQMslider", "Mana % for Q").SetValue(new Slider(10, 100, 0)));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQslider", "Max enemies around to use Q").SetValue(new Slider(1, 5, 1)));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQTF", "Use Q Teamfight mode").SetValue(true));
-            combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQ1v1", "Use Q in 1 v 1?").SetValue(true));
+            combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQ1v1", "Use Q in 1 v 1 ?").SetValue(false));
 
             combo.SubMenu("Settings W").AddItem(new MenuItem("UseW", "Use W").SetValue(true));
             combo.SubMenu("Settings W").AddItem(new MenuItem("UseWslider", "Minimum enemies to use W").SetValue(new Slider(1, 5, 1)));
@@ -70,10 +70,12 @@ namespace TurboTwitch
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOA", "E if enemy is out of AA range and has stacks (Lane Pressure)").SetValue(true));
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOAslider", "Stacks Amount").SetValue(new Slider(4, 6, 1)));
 
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(false));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1", "Use R").SetValue(false));
+
+
             combo.SubMenu("Item Settings").AddItem(new MenuItem("UseItems", "Use Items").SetValue(true));
             combo.SubMenu("Item Settings").AddItem(new MenuItem("ghostblade", "Use Youmuu's Ghostblade").SetValue(false));
-            combo.SubMenu("Item Settings").AddItem(new MenuItem("ghostbladeownhp", "Own HP %").SetValue(new Slider(60, 100, 0)));
-            combo.SubMenu("Item Settings").AddItem(new MenuItem("ghostbladeenemyhp", "Enemy HP %").SetValue(new Slider(60, 100, 0)));
             combo.SubMenu("Item Settings").AddItem(new MenuItem("bork", "Use Blade Of The Ruined King").SetValue(true));
             combo.SubMenu("Item Settings").AddItem(new MenuItem("borkownhp", "Own HP %").SetValue(new Slider(60, 100, 0)));
             combo.SubMenu("Item Settings").AddItem(new MenuItem("borkenemyhp", "Enemy HP %").SetValue(new Slider(75, 100, 0)));
@@ -97,7 +99,8 @@ namespace TurboTwitch
             jungleclear.AddItem(new MenuItem("JungleclearMana", "Jungleclear Mana").SetValue(new Slider(40, 100, 0)));
 
             harass.AddItem(new MenuItem("HarassE", "Use E").SetValue(true));
-            harass.AddItem(new MenuItem("HarassEMana", "Mana % for E").SetValue(new Slider(50, 100, 0)));
+            harass.AddItem(new MenuItem("HarassW", "Use W").SetValue(true));
+            harass.AddItem(new MenuItem("HarassMana", "Mana % for Harass").SetValue(new Slider(50, 100, 0)));
 
             killsteal.AddItem(new MenuItem("KSE", "Killsteal with E").SetValue(true));
 
@@ -114,19 +117,16 @@ namespace TurboTwitch
 
             drawing.AddItem(new MenuItem("DrawDisable", "Disable All Drawings").SetValue(false));
             drawing.AddItem(new MenuItem("stealthstatus", "Draw Stealth Recall Status").SetValue(true));
+            drawing.AddItem(new MenuItem("DrawEstacks", "Draw E stacks on enemy").SetValue(true));
             drawing.AddItem(new MenuItem("DrawW", "Draw W Range").SetValue(new Circle(true, Color.Blue)));
             drawing.AddItem(new MenuItem("DrawE", "Draw E Range").SetValue(new Circle(true, Color.Blue)));
             drawing.AddItem(new MenuItem("DrawR", "Draw R Range").SetValue(new Circle(true, Color.Blue)));
+            //drawing.AddItem(new MenuItem("DrawRL", "Draw R Line").SetValue(new Circle(true, System.Drawing.Color.CadetBlue)));
 
-            // draw > Draw E stacks on enemy
-            // draw > Draw ult seconds under player\
-            // draw enemy poisoned (boven de map)
-            // Combo > R = line skillshot with no collision > use r if enemy.hitcount >=2 or 3
-            // Combo > if enemy is out of aa range and killable and is in R range && config item R  > R.Cast > enemies to use R
-
-            // TO DO >  misc > Auto Q on zed ult / caitultbuff
-            // TO DO >  Combo > Q logic if play has ghostblade && config item ghostblade cast ghostblade && calc edmg + aa * ? + 5
-            // TO DO >  Combo > USE Q SNEAKY 3000 RANGE if Q.level == 5 / 2500 RANGE if Q.level == 3 etc
+            // TO DO >  Combo > Custom E calculation for perfect E executes
+            // TO DO >  Draw > Enemies poisoned (X;Y;A;M)
+            // TO DO >  Draw > R Timer / Q Timer
+            // TO DO >  Combo > R LOGIC
 
             // Feature DrawingS are blue when ready en turn red when can't be used 
 
@@ -184,7 +184,7 @@ namespace TurboTwitch
             }
             if (Config.Item("recall").GetValue<KeyBind>().Active)
             {
-                if (Q.IsReady() && Recall.IsReady())
+                if (Q.IsReady())
                 {
                     Q.Cast();
                     Recall.Cast();
@@ -257,6 +257,11 @@ namespace TurboTwitch
                 }
             }
         }
+
+        private static void ECalc()
+        {
+
+        }
         private static void ELogic()
         {
             foreach (var enemy in
@@ -280,7 +285,7 @@ namespace TurboTwitch
 
                 if (Config.Item("UseE").GetValue<bool>() && E.IsReady()
                     && enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count >= Config.Item("UseEOOAslider").GetValue<Slider>().Value
-                    && Config.Item("UseEOOA").GetValue<bool>() && enemy.Distance(Player.Position) > Orbwalking.GetRealAutoAttackRange(Player))
+                    && Config.Item("UseEOOA").GetValue<bool>() && enemy.Distance(Player.Position) > Orbwalking.GetRealAutoAttackRange(Player) + 100)
                     E.Cast();
 
             }
@@ -307,7 +312,9 @@ namespace TurboTwitch
                 var damage = aa;
                 // aa range = 550, R range = 300, Tot range = 850 
 
-                //TURRET CHECK
+                if (Config.Item("UseQ").GetValue<bool>())
+                {
+                    //TURRET CHECK
                 if (enemy.Position.UnderTurret(true) && Config.Item("UseQtower").GetValue<bool>()
                     && Q.IsReady())
                     return;
@@ -342,6 +349,7 @@ namespace TurboTwitch
                     && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
                     && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 10)
                     Q.Cast();
+                }          
 
             }
         }
@@ -394,9 +402,17 @@ namespace TurboTwitch
 
                 if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count >= 6 && E.IsReady()
                 && Config.Item("HarassE").GetValue<bool>()
-                && Player.ManaPercent >= Config.Item("HarassEMana").GetValue<Slider>().Value)
+                && Player.ManaPercent >= Config.Item("HarassMana").GetValue<Slider>().Value)
                     E.Cast();
 
+                var wprediction = W.GetPrediction(enemy);
+
+                if (Config.Item("HarassW").GetValue<bool>())
+                {
+                    if (W.IsReady() && wprediction.Hitchance >= HitChance.High
+                        && Player.ManaPercent >= Config.Item("HarassMana").GetValue<Slider>().Value)
+                        W.Cast(enemy);
+                }
             }
         }
         private static void Killsteal()
@@ -499,47 +515,91 @@ namespace TurboTwitch
         }
         private static void OnDraw(EventArgs args)
         {
-            var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
-            var targetpos = Drawing.WorldToScreen(Player.Position);
-            var targetpos2 = Drawing.WorldToScreen(target.Position);
+            //var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
+            var targetpos = Drawing.WorldToScreen(Player.Position);       
+            //var enemypos = Drawing.WorldToScreen(target.Position);
 
             if (Config.Item("DrawDisable").GetValue<bool>())
                 return;
             if (Config.Item("stealthstatus").GetValue<bool>())
             {               
-                if (Q.IsReady() && Recall.IsReady())
+                if (Q.IsReady())
                 {
-                    Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.SteelBlue, "STEALTH RECALL READY");
+                    Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Snow, "STEALTH RECALL READY");
                 }
                 else if (Player.HasBuff("TwitchHideInShadows") && Player.HasBuff("Recall"))
                     Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Yellow, "RECALLING...");
-                else if (!Player.HasBuff("recall"))
-                    Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Red, "Q IS NOT AVAILABLE");
-            }           
-
+                else if (!Player.HasBuff("recall") || !Q.IsReady())
+                    Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Red, "Q NOT AVAILABLE");
+                //X - links || X + rechts || Y - boven || Y + onder
+            }
+           
             if (Config.Item("DrawW").GetValue<Circle>().Active)
             {
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, W.IsReady() ?
                     Config.Item("DrawW").GetValue<Circle>().Color : System.Drawing.Color.Red);
             }
-
-
-
             if (Config.Item("DrawE").GetValue<Circle>().Active)
             {
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, E.IsReady() ?
                     Config.Item("DrawE").GetValue<Circle>().Color : System.Drawing.Color.Red);
             }
-
-
-
             if (Config.Item("DrawR").GetValue<Circle>().Active)
             {
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, R.Range, R.IsReady() ?
                     Config.Item("DrawR").GetValue<Circle>().Color : System.Drawing.Color.Red);
             }
 
+            if (Config.Item("DrawEstacks").GetValue<bool>())
+            {
+                foreach (var enemy in
+               ObjectManager.Get<Obj_AI_Hero>()
+                   .Where(x => x.IsValidTarget(E.Range))
+                   .Where(x => !x.IsZombie)
+                   .Where(x => !x.IsDead))
+                {
+                    var enemypos = Drawing.WorldToScreen(enemy.Position);
+
+                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 1)
+                    {
+                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "1 STACK");
+                    }
+                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 2)
+                    {
+                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "2 STACKS");
+                    }
+                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 3)
+                    {
+                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "3 STACKS");
+                    }
+                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 4)
+                    {
+                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "4 STACKS");
+                    }
+                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 5)
+                    {
+                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "5 STACKS");
+                    }
+                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 6)
+                    {
+                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "6 STACKS");
+                    }
+                }
+            }
+
+            //if (Config.Item("DrawRLine", true).GetValue<Bool>())
+            //{
+                //if (Player.HasBuff("TwitchFullAutomatic"))
+                //{
+                    //var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical);
+                    //var rline = new Geometry.Polygon.Line(Player.Position, target.Position, R.Range);
+
+                    //if (Config.Item("DrawRL").GetValue<Circle>().Active)
+                        //rline.Draw(Config.Item("DrawRL").GetValue<Circle>().Color, 4);
+                //}
+            //}
         }
+
         private static void DBS()
         {
             var blueBuff =
@@ -585,6 +645,6 @@ namespace TurboTwitch
                     E.Cast(Baron);
             }
         }
-        //Credits ScienceARK  Buffsteal , xcsoft Stealrecall
+        //Credits ScienceARK  Buffsteal , xcsoft buff drawing
     }
 }
