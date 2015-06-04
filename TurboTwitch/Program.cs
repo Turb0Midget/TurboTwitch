@@ -14,6 +14,7 @@ namespace TurboTwitch
         public static Menu Config;
         public static Orbwalking.Orbwalker Orbwalker;
         public static Spell Q, W, E, R, Recall;
+        //public static HpBarIndicator Hpi = new HpBarIndicator();
         private static readonly Obj_AI_Hero Player = ObjectManager.Player;
         static void Main(string[] args)
         {
@@ -56,6 +57,7 @@ namespace TurboTwitch
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQslider", "Max enemies around to use Q").SetValue(new Slider(1, 5, 1)));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQTF", "Use Q Teamfight mode").SetValue(true));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQ1v1", "Use Q in 1 v 1 ?").SetValue(false));
+            combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQtower", "Don't use Q if enemy under tower").SetValue(true));
 
             combo.SubMenu("Settings W").AddItem(new MenuItem("UseW", "Use W").SetValue(true));
             combo.SubMenu("Settings W").AddItem(new MenuItem("UseWslider", "Minimum enemies to use W").SetValue(new Slider(1, 5, 1)));
@@ -70,9 +72,14 @@ namespace TurboTwitch
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOA", "E if enemy is out of AA range and has stacks (Lane Pressure)").SetValue(true));
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOAslider", "Stacks Amount").SetValue(new Slider(4, 6, 1)));
 
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(false));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(false));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(true));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
             combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRtower", "Don't use R if enemy under tower").SetValue(true));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRalways", "[BROKE] Force R if killable").SetValue(false));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRY", "[BROKE] Calculate R damage + Ghostblade when item enabled").SetValue(true));
+            
 
 
             combo.SubMenu("Item Settings").AddItem(new MenuItem("UseItems", "Use Items").SetValue(true));
@@ -105,13 +112,13 @@ namespace TurboTwitch
 
             killsteal.AddItem(new MenuItem("KSE", "Killsteal with E").SetValue(true));
 
-          //misc.AddItem(new MenuItem("Trinket", "Auto Buy Trinket").SetValue(new StringList(new[] { Scrying.Orb.ToString(), Warding.Totem.ToString(), Sweeper.Lens.ToString() }, 3)));
+            //misc.AddItem(new MenuItem("Trinket", "Auto Buy Trinket").SetValue(new StringList(new[] { Scrying.Orb.ToString(), Warding.Totem.ToString(), Sweeper.Lens.ToString() }, 3)));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKS", "Secure Buffs / Objectives with E").SetValue(true));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSB", "Secure Blue with E").SetValue(false));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSR", "Secure Red with E").SetValue(false));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSD", "Secure Dragon with E").SetValue(true));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSBAR", "Secure Baron with E").SetValue(true));
-            misc.AddItem(new MenuItem("recall", "StealthRecall").SetValue(new KeyBind('T', KeyBindType.Press)));
+            misc.AddItem(new MenuItem("recall", "StealthRecall").SetValue(new KeyBind('z', KeyBindType.Press)));
             misc.AddItem(new MenuItem("AntiGapW", "Auto W in gapclosers").SetValue(true));
             misc.AddItem(new MenuItem("AutoQ", "Auto use Q when below hp %").SetValue(false));
             misc.AddItem(new MenuItem("AutoQHP", "HP %").SetValue(new Slider(10, 100, 0)));
@@ -119,26 +126,50 @@ namespace TurboTwitch
             drawing.AddItem(new MenuItem("DrawDisable", "Disable All Drawings").SetValue(false));
             drawing.AddItem(new MenuItem("stealthstatus", "Draw Stealth Recall Status").SetValue(true));
             drawing.AddItem(new MenuItem("DrawEstacks", "Draw E stacks on enemy").SetValue(true));
+            drawing.AddItem(new MenuItem("DrawCalcQ", "Draw CalcQ").SetValue(true));
+            drawing.AddItem(new MenuItem("DrawCalcE", "Draw CalcE").SetValue(true));
+            drawing.AddItem(new MenuItem("DrawCalcR", "Draw CalcR").SetValue(true));
             drawing.AddItem(new MenuItem("DrawW", "Draw W Range").SetValue(new Circle(true, Color.Blue)));
             drawing.AddItem(new MenuItem("DrawE", "Draw E Range").SetValue(new Circle(true, Color.Blue)));
             drawing.AddItem(new MenuItem("DrawR", "Draw R Range").SetValue(new Circle(true, Color.Blue)));
             //drawing.AddItem(new MenuItem("DrawRL", "Draw R Line").SetValue(new Circle(true, System.Drawing.Color.CadetBlue)));
 
-            // TO DO >  Combo > Custom E calculation for perfect E executes
-            // TO DO >  Draw > Enemies poisoned (X;Y;A;M)
-            // TO DO >  Draw > R Timer / Q Timer
+
+            
 
             // TO DO >  Combo > R LOGIC
-            // R if hit 3 enemies and allies are near enemies
-            // R if 1v1 mode is enabled and target gaat uit of AA range en is killable door 2/3 aa's
-            // R ks through enemy champs/minions
+            // TO DO >  R if hit 3 enemies and allies are near enemies
+            // TO DO >  R if 1v1 mode is enabled and target gaat uit of AA range en is killable door 2/3 aa's
+            // TO DO >  Draw > R ACTIVATED ! IN ROOD
+            // TO DO >  Draw > if R toggle enabled : R ENABLED
+            // TO DO >  Draw > R Timer / Q Timer
+
+
+            // TO DO >  Custom assassin mode links clikc rood rechts clikc groen
+            // TO DO >  Interrupt important spells if killable with 2/3 aa > force target (kata R)
+
+
 
             // Feature DrawingS are blue when ready en turn red when can't be used 
+            // Feature Custom Q Damage Calculations
+            // Feature Custom E Damage Calculations
+
+            //CHECK CALC Q 
+            //CHECK CALC E 
+            //CHECK CALC R 
+            //CHECK DRAW E STACKS ON ENEMY
+            //CHECK USE Q UNDER TOWER
+            //CHECK USE R UNDER TOWER
+            //CHECK NORMAL R
+            //CHECK 1V1 R
+            //CHECK TEAMFIGHT MODE R
+
 
             Config.AddToMainMenu();
 
             Game.OnUpdate += Game_OnGameUpdate;
             Drawing.OnDraw += OnDraw;
+
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
 
         }
@@ -263,9 +294,150 @@ namespace TurboTwitch
             }
         }
 
-        private static void ECalc()
+        private static float CalcE(Obj_AI_Base target)
         {
+            var aa = Player.GetAutoAttackDamage(target, true);
+            var damage = 1;
 
+            var edmg = E.GetDamage(target);
+            var enemy = ObjectManager.Get<Obj_AI_Hero>()
+                .Where(x => x.IsValidTarget(E.Range))
+                .Where(x => !x.IsZombie)
+                .Where(x => !x.IsDead);
+
+            var estacks = target.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count;
+            //Equal to a base amount plus bonus damage for each stack
+            //BASE PHYSICAL DAMAGE: 20 / 35 / 50 / 65 / 80
+            //BONUS DAMAGE PER STACK: 15 / 20 / 25 / 30 / 35 (+ 20% AP) (+ 25% bonus AD)
+            //MAX PHYSICAL DAMAGE: 110 / 155 / 200 / 245 / 290 (+ 120% AP) (+ 150% bonus AD
+
+            if (E.Level == 1 && E.IsReady())
+                damage += 20 * estacks;
+
+            if (E.Level == 2 && E.IsReady())
+                damage += 35 * estacks;
+
+            if (E.Level == 3 && E.IsReady())
+                damage += 50 * estacks;
+
+            if (E.Level == 4 && E.IsReady())
+                damage += 65 * estacks;
+
+            if (E.Level == 5 && E.IsReady())
+                damage += 80 * estacks;
+
+            return (float)damage;
+        }
+
+        private static int CalcQ(Obj_AI_Base target)
+        {
+            var aa = Player.GetAutoAttackDamage(target, true);
+            var damage = aa;
+
+            //  1  / 2  / 3  / 4  / 5   LV
+            // 30 / 40 / 50 / 60 / 70   AS
+            // 2 / 3  / 5  / 7  / 9     AA
+
+
+            if (Q.IsReady() && Q.Level == 1)
+                damage += aa;
+
+            if (Q.IsReady() && Q.Level == 2)
+                damage += aa * 2;
+
+            if (Q.IsReady() && Q.Level == 3)
+                damage += aa * 4;
+
+            if (Q.IsReady() && Q.Level == 4)
+                damage += aa * 6;
+
+            if (Q.IsReady() && Q.Level == 5)
+                damage += aa * 8;
+
+            return (int)damage;
+        }
+
+        private static int CalcR(Obj_AI_Base target)
+        {
+            var aa = Player.GetAutoAttackDamage(target);
+            var damage = aa;
+
+            // R LEVEL 1
+            if (R.Level == 1 && R.IsReady()
+                && Player.AttackSpeedMod <= 1)
+                damage += aa * 7 + 120 + CalcE(target);
+
+            if (R.Level == 1 && R.IsReady()
+                && Player.AttackSpeedMod > 1.01 && Player.AttackSpeedMod <= 1.5)
+                damage += aa * 10 + 120 + CalcE(target);
+
+            if (R.Level == 1 && R.IsReady()
+                && Player.AttackSpeedMod > 1.51 && Player.AttackSpeedMod <= 2)
+                damage += aa * 14 + 120 + CalcE(target);
+
+            if (R.Level == 1 && R.IsReady()
+                && Player.AttackSpeedMod > 2.01 && Player.AttackSpeedMod <= 2.5)
+                damage += aa * 17 + 120 + CalcE(target);
+
+            // R LEVEL 2
+            if (R.Level == 2 && R.IsReady()
+                && Player.AttackSpeedMod <= 1)
+                damage += aa * 7 + 168 + CalcE(target);
+
+            if (R.Level == 2 && R.IsReady()
+                && Player.AttackSpeedMod > 1.01 && Player.AttackSpeedMod <= 1.5)
+                damage += aa * 10 + 168 + CalcE(target);
+
+            if (R.Level == 2 && R.IsReady()
+                && Player.AttackSpeedMod > 1.51 && Player.AttackSpeedMod <= 2)
+                damage += aa * 14 + 168 + CalcE(target);
+
+            if (R.Level == 2 && R.IsReady()
+                && Player.AttackSpeedMod > 2.01 && Player.AttackSpeedMod <= 2.5)
+                damage += aa * 17 + 168 + CalcE(target);
+
+            // R LEVEL 3
+            if (R.Level == 3 && R.IsReady()
+                && Player.AttackSpeedMod <= 1)
+                damage += aa * 7 + 216 + CalcE(target);
+
+            if (R.Level == 3 && R.IsReady()
+                && Player.AttackSpeedMod > 1.01 && Player.AttackSpeedMod <= 1.5)
+                damage += aa * 10 + 216 + CalcE(target);
+
+            if (R.Level == 3 && R.IsReady()
+                && Player.AttackSpeedMod > 1.51 && Player.AttackSpeedMod <= 2)
+                damage += aa * 14 + 216 + CalcE(target);
+
+            if (R.Level == 3 && R.IsReady()
+                && Player.AttackSpeedMod > 2.01 && Player.AttackSpeedMod <= 2.5)
+                damage += aa * 17 + 216 + CalcE(target);
+
+
+            // R LEVEL 1
+
+            // 1 AS   =  7 * AA + 120 + CALCE
+            // 1.5 AS = 10 * AA + 120 + CALCE
+            // 2.0 AS = 14 * AA + 120 + CALCE
+            // 2.5 AS = 17 * AA + 120 + CALCE
+
+
+            // R LEVEL 2
+
+            // 1 AS   =  7 * AA + 168 + CALCE
+            // 1.5 AS = 10 * AA + 168 + CALCE
+            // 2.0 AS = 14 * AA + 168 + CALCE
+            // 2.5 AS = 17 * AA + 168 + CALCE
+
+
+            // R LEVEL 3
+
+            // 1 AS   =  7 * AA + 216 + CALCE
+            // 1.5 AS = 10 * AA + 216 + CALCE
+            // 2.0 AS = 14 * AA + 216 + CALCE
+            // 2.5 AS = 17 * AA + 216 + CALCE
+
+            return (int)damage;
         }
         private static void ELogic()
         {
@@ -315,46 +487,51 @@ namespace TurboTwitch
                 var edmg = E.GetDamage(enemy);
                 var aa = Player.GetAutoAttackDamage(enemy, true);
                 var damage = aa;
+                var wprediction = W.GetPrediction(enemy);
                 // aa range = 550, R range = 300, Tot range = 850 
 
                 if (Config.Item("UseQ").GetValue<bool>())
                 {
                     //TURRET CHECK
-                if (enemy.Position.UnderTurret(true) && Config.Item("UseQtower").GetValue<bool>()
-                    && Q.IsReady())
-                    return;
+                    if (Config.Item("UseQtower").GetValue<bool>() && enemy.Position.UnderTurret(true)
+                        && Q.IsReady())
+                        return;
 
-                //Q 1V1 MODE
-                if (Config.Item("UseQ1v1").GetValue<bool>()
-                    && enemy.Position.CountEnemiesInRange(1200) == 1
-                    && Q.IsReady() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value)
-                    Q.Cast();
+                    //Q 1V1 MODE
+                    if (Config.Item("UseQ1v1").GetValue<bool>()
+                        && enemy.Position.CountEnemiesInRange(1200) == 1
+                        && Q.IsReady() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value)
+                        Q.Cast();
 
-                //WHEN TO NOT USE Q
-                if (Player.HasBuff("TwitchHideInShadows") || !Player.IsVisible ||
-                    Player.HasBuff("CHECKCORKIQ") || Player.HasBuff("BlindMonkTempest") ||
-                    Player.HasBuff("ORACLELENS") || Player.HasBuff("BlindMonkSonicWave"))
-                    //Pinkward
-                    return;
+                    //WHEN TO NOT USE Q
+                    if (Player.HasBuff("TwitchHideInShadows") || !Player.IsVisible ||
+                        Player.HasBuff("PhosphorusBomb") || Player.HasBuff("BlindMonkTempest") ||
+                        Player.HasBuff("ORACLELENS") || Player.HasBuff("BlindMonkSonicWave"))
+                        //Pinkward
+                        return;
 
-                //WHEN TO USE Q
-                if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
-                    && enemy.Health < edmg + 6 * aa + 5
-                    && enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
-                    && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value ||
-                    //&& Config.Item("ComboEMana").GetValue<Slider>().Value  DONT Q IF IF NOT HAVE ENOUGH MANA FOR E TO KILL ENEMY 
-                    Config.Item("UseQ").GetValue<bool>() && enemy.Health < edmg + 8 * aa + 5 && Q.IsReady()
-                    && enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
-                    && Config.Item("UseW").GetValue<bool>() && W.IsReady()
-                    && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value)
-                    Q.Cast();
+                    //WHEN TO USE Q
+                    if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
+                        && enemy.Health < edmg + 6 * aa + 5
+                        && enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
+                        && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value ||
+                        //&& Config.Item("ComboEMana").GetValue<Slider>().Value
+                        Config.Item("UseQ").GetValue<bool>() && enemy.Health < edmg + 8 * aa + 5 && Q.IsReady()
+                        && enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
+                        && Config.Item("UseW").GetValue<bool>() && W.IsReady()
+                        && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value)
+                        Q.Cast();
 
-                //Q TEAMFIGHT MODE
-                if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
-                    && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
-                    && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 10)
-                    Q.Cast();
-                }          
+                    //Q TEAMFIGHT MODE
+                    if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
+                        && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
+                        && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 10 || Config.Item("UseW").GetValue<bool>()
+                        && enemy.Position.CountEnemiesInRange(1400) >= Config.Item("UseWslider").GetValue<Slider>().Value
+                        && W.IsReady() && wprediction.Hitchance >= HitChance.High && Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
+                        && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
+                        && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 12)
+                        Q.Cast();
+                }
 
             }
         }
@@ -406,35 +583,132 @@ namespace TurboTwitch
                     .Where(x => !x.IsDead))
             {
                 if (Player.IsDead || !Config.Item("UseR").GetValue<bool>()
-                    || !R.IsReady() || target.IsInvulnerable)
+                    || !R.IsReady() || target.IsInvulnerable
+                    || Player.ManaPercent <  Config.Item("ComboRMana").GetValue<Slider>().Value)
                     return;
 
+                var edmg = E.GetDamage(enemy);
+                var aa = Player.GetAutoAttackDamage(enemy);
+                var wprediction = W.GetPrediction(enemy);
+
+                //TURRET CHECK
+                if (Config.Item("UseRtower").GetValue<bool>() && enemy.Position.UnderTurret(true)
+                    && Q.IsReady())
+                    return;
+
+                //R 1V1 MODE
+                if (Config.Item("UseR").GetValue<KeyBind>().Active && R.IsReady())
+                {
+                    if (enemy.CountEnemiesInRange(R.Range) <= 1 && enemy.Health < CalcR(enemy))
+                        R.Cast();
+                }
+                                                                   // WHEN TO NOT USE R
+
+                //enemy.healt < edmg + AA if in aa range
+                //enemy.healy < edmg  if in E range
+                //enemy.healt < edmg + 6 AA's if in aa range
+                if (Config.Item("UseE").GetValue<bool>() && E.IsReady())
+                {
+                    if (enemy.Health <= edmg + 5 + aa
+                    && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player) ||
+                    enemy.Health <= edmg + 5 && enemy.IsValidTarget(E.Range) || enemy.Health < edmg + 5 + aa * 6
+                    && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                    && target.IsValidTarget(E.Range) && Player.ManaPercent <= Config.Item("ComboEMana").GetValue<Slider>().Value)
+                        return;
+                }
+
+                //enemy.healt < edmg + 8 AA's && W.IsReady()
+                if (Config.Item("UseE").GetValue<bool>() && Config.Item("UseW").GetValue<bool>()
+                    && E.IsReady() && W.IsReady())
+                {
+                    if (enemy.Health < edmg + 5 + aa * 6 && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                        && target.IsValidTarget(E.Range) && Player.ManaPercent <= Config.Item("ComboEMana").GetValue<Slider>().Value
+                        && wprediction.Hitchance >= HitChance.High)
+                        return;
+                }
+
+                // IN STLEATH, enemy.Health < CalcQ 
+                // IN STEALTH, enemy.Health < CalcQ + edmg if in aa range
+                // IN STEALTH, enemy.Health < edmg + 6 AA's if in aa range
+                // IN STEALTH, enemy.Health < edmg if in E range
+                // IN STEALTH, enemy.Health < edmg + aa if in aa range
+                if (Player.HasBuff("TwitchHideInShadows"))
+                {
+                    if (enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                        && enemy.Health < CalcQ(enemy) && !Player.IsAttackingPlayer
+                        || enemy.Distance(Player.Position)
+                        < Orbwalking.GetRealAutoAttackRange(Player) && enemy.Health < CalcQ(enemy) + edmg && !Player.IsAttackingPlayer
+                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                        || enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player) && !Player.IsAttackingPlayer
+                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                        && enemy.Health < edmg + aa * 6 + 5
+                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                        || enemy.Health <= edmg + 5
+                        && enemy.IsValidTarget(E.Range) && E.IsReady() && !Player.IsAttackingPlayer
+                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                        || enemy.Health <= edmg + 5 + aa && E.IsReady() && !Player.IsAttackingPlayer
+                        && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value)
+                        return;
+                }
+
+                // OUT STEALTH AS, enemy.Health < CalcQ 
+                // OUT STEALTH AS, enemy.Health < CalcQ + edmg if in aa range
+                // OUT STEALTH AS, enemy.Health < edmg + 6 AA's if in aa range
+                // OUT STEALTH AS, enemy.Health < edmg if in E range
+                // OUT STEALTH AS, enemy.Health < edmg + aa if in aa range
+                if (Player.HasBuff("TWITCHATTACKSSPEEDQBUFF"))
+                {
+                    if (enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                       && enemy.Health < CalcQ(enemy)
+                       || enemy.Distance(Player.Position)
+                       < Orbwalking.GetRealAutoAttackRange(Player) && enemy.Health < CalcQ(enemy) + edmg
+                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                       || enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                       && enemy.Health < edmg + aa * 6 + 5
+                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                       || enemy.Health <= edmg + 5
+                       && enemy.IsValidTarget(E.Range) && E.IsReady()
+                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                       || enemy.Health <= edmg + 5 + aa && E.IsReady()
+                       && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value)
+                        return;
+                }
+                                                                   //WHEN TO USE R
+
+
+
+                //R NORMAL MODE
+                if (Config.Item("UseR").GetValue<bool>() && R.IsReady())
+                {
+                    if (enemy.Health < CalcR(enemy))
+                        R.Cast();
+                }
+
+                //R TEAMFIGHTMODE
+                if (Config.Item("UseR").GetValue<bool>() && Config.Item("UseRT").GetValue<bool>()
+                    && R.IsReady() && enemy.CountEnemiesInRange(852) >= 3 && enemy.Health < CalcR(enemy))
+                    R.Cast();
 
 
 
 
 
-                //WHEN TO NOT USE R
 
 
 
 
 
 
-
-
-
-                //WHEN TO USE R
-
-
-
-
-
-
-
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('T', KeyBindType.Press)));
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
 
                 // R if hit 3 enemies and allies are near enemies
                 // R if 1v1 mode is enabled and target gaat uit of AA range en is killable door 2/3 aa's
+
             }
 
 
@@ -567,13 +841,13 @@ namespace TurboTwitch
         private static void OnDraw(EventArgs args)
         {
             //var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
-            var targetpos = Drawing.WorldToScreen(Player.Position);       
+            var targetpos = Drawing.WorldToScreen(Player.Position);
             //var enemypos = Drawing.WorldToScreen(target.Position);
 
             if (Config.Item("DrawDisable").GetValue<bool>())
                 return;
             if (Config.Item("stealthstatus").GetValue<bool>())
-            {               
+            {
                 if (Q.IsReady())
                 {
                     Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Snow, "STEALTH RECALL READY");
@@ -584,7 +858,7 @@ namespace TurboTwitch
                     Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Red, "Q NOT AVAILABLE");
                 //X - links || X + rechts || Y - boven || Y + onder
             }
-           
+
             if (Config.Item("DrawW").GetValue<Circle>().Active)
             {
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, W.Range, W.IsReady() ?
@@ -601,55 +875,51 @@ namespace TurboTwitch
                     Config.Item("DrawR").GetValue<Circle>().Color : System.Drawing.Color.Red);
             }
 
-            if (Config.Item("DrawEstacks").GetValue<bool>())
+            foreach (var enemy in
+           ObjectManager.Get<Obj_AI_Hero>()
+               .Where(x => x.IsValidTarget(E.Range))
+               .Where(x => !x.IsZombie)
+               .Where(x => !x.IsDead))
             {
-                foreach (var enemy in
-               ObjectManager.Get<Obj_AI_Hero>()
-                   .Where(x => x.IsValidTarget(E.Range))
-                   .Where(x => !x.IsZombie)
-                   .Where(x => !x.IsDead))
-                {
-                    var enemypos = Drawing.WorldToScreen(enemy.Position);
+                var enemypos = Drawing.WorldToScreen(enemy.Position);
+                var estacks = enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count;
 
-                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 1)
-                    {
-                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "1 STACK");
-                    }
-                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 2)
-                    {
-                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "2 STACKS");
-                    }
-                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 3)
-                    {
-                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "3 STACKS");
-                    }
-                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 4)
-                    {
-                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "4 STACKS");
-                    }
-                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 5)
-                    {
-                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "5 STACKS");
-                    }
-                    if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 6)
-                    {
-                        Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "6 STACKS");
-                    }
-                }
+                if (Config.Item("DrawEstacks").GetValue<bool>())
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, estacks.ToString("stacks"));
             }
 
-            //if (Config.Item("DrawRLine", true).GetValue<Bool>())
-            //{
-                //if (Player.HasBuff("TwitchFullAutomatic"))
-                //{
-                    //var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical);
-                    //var rline = new Geometry.Polygon.Line(Player.Position, target.Position, R.Range);
+            foreach (var enemy in
+                ObjectManager.Get<Obj_AI_Hero>().Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
+            {
+                var epos = Drawing.WorldToScreen(enemy.Position);
+                if (Config.Item("DrawCalcE").GetValue<bool>())
+                    Drawing.DrawText(epos.X - 50, epos.Y + 50, System.Drawing.Color.Gold,
+                        "CalcE DMG = " + CalcE(enemy).ToString());
+                if (Config.Item("DrawCalcQ").GetValue<bool>())
+                    Drawing.DrawText(epos.X - 50, epos.Y + 75, System.Drawing.Color.Gold,
+                      "CalcQ DMG = " + CalcQ(enemy).ToString());
+                if (Config.Item("DrawCalcR").GetValue<bool>())
+                    Drawing.DrawText(epos.X - 50, epos.Y + 100, System.Drawing.Color.Gold,
+                        "CalcR DMG = " + CalcE(enemy).ToString());
 
-                    //if (Config.Item("DrawRL").GetValue<Circle>().Active)
-                        //rline.Draw(Config.Item("DrawRL").GetValue<Circle>().Color, 4);
-                //}
-            //}
+            }
         }
+
+
+
+
+        //if (Config.Item("DrawRLine", true).GetValue<Bool>())
+        //{
+        //if (Player.HasBuff("TwitchFullAutomatic"))
+        //{
+        //var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical);
+        //var rline = new Geometry.Polygon.Line(Player.Position, target.Position, R.Range);
+
+        //if (Config.Item("DrawRL").GetValue<Circle>().Active)
+        //rline.Draw(Config.Item("DrawRL").GetValue<Circle>().Color, 4);
+        //}
+        //}
+
 
         private static void DBS()
         {
@@ -676,26 +946,26 @@ namespace TurboTwitch
 
 
             if (Config.Item("JungleKSB").GetValue<bool>())
-            {               
+            {
                 if (blueBuff != null)
                     E.Cast(blueBuff);
             }
             if (Config.Item("JungleKSR").GetValue<bool>())
-            {               
+            {
                 if (redbuff != null)
                     E.Cast(redbuff);
             }
             if (Config.Item("JungleKSD").GetValue<bool>())
-            {                
+            {
                 if (Dragon != null)
                     E.Cast(Dragon);
             }
             if (Config.Item("JungleKSBAR").GetValue<bool>())
-            {                
+            {
                 if (Baron != null)
                     E.Cast(Baron);
             }
         }
-        //Credits ScienceARK  Buffsteal , xcsoft buff drawing
+        //Credits ScienceARK  Buffsteal , xcsoft position drawing
     }
 }
