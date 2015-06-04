@@ -72,7 +72,7 @@ namespace TurboTwitch
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOA", "E if enemy is out of AA range and has stacks (Lane Pressure)").SetValue(true));
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOAslider", "Stacks Amount").SetValue(new Slider(4, 6, 1)));
 
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(true));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind("T".ToCharArray()[0], KeyBindType.Toggle)));
             combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
             combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
             combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
@@ -184,7 +184,10 @@ namespace TurboTwitch
                     QLogic();
                     WLogic();
                     ELogic();
-                    RLogic();
+                    if (Config.Item("UseR").IsActive())
+                    {
+                        RLogic();
+                    }
                     Items();
                     break;
                 case Orbwalking.OrbwalkingMode.Mixed:
@@ -365,53 +368,53 @@ namespace TurboTwitch
             // R LEVEL 1
             if (R.Level == 1 && R.IsReady()
                 && Player.AttackSpeedMod <= 1)
-                damage += aa * 7 + 120 + CalcE(target);
+                damage += aa * 7 + 120 + E.GetDamage(target);
 
             if (R.Level == 1 && R.IsReady()
                 && Player.AttackSpeedMod > 1.01 && Player.AttackSpeedMod <= 1.5)
-                damage += aa * 10 + 120 + CalcE(target);
+                damage += aa * 10 + 120 + E.GetDamage(target); 
 
             if (R.Level == 1 && R.IsReady()
                 && Player.AttackSpeedMod > 1.51 && Player.AttackSpeedMod <= 2)
-                damage += aa * 14 + 120 + CalcE(target);
+                damage += aa * 14 + 120 + E.GetDamage(target);
 
             if (R.Level == 1 && R.IsReady()
                 && Player.AttackSpeedMod > 2.01 && Player.AttackSpeedMod <= 2.5)
-                damage += aa * 17 + 120 + CalcE(target);
+                damage += aa * 17 + 120 + E.GetDamage(target); 
 
             // R LEVEL 2
             if (R.Level == 2 && R.IsReady()
                 && Player.AttackSpeedMod <= 1)
-                damage += aa * 7 + 168 + CalcE(target);
+                damage += aa * 7 + 168 + E.GetDamage(target);
 
             if (R.Level == 2 && R.IsReady()
                 && Player.AttackSpeedMod > 1.01 && Player.AttackSpeedMod <= 1.5)
-                damage += aa * 10 + 168 + CalcE(target);
+                damage += aa * 10 + 168 + E.GetDamage(target);
 
             if (R.Level == 2 && R.IsReady()
                 && Player.AttackSpeedMod > 1.51 && Player.AttackSpeedMod <= 2)
-                damage += aa * 14 + 168 + CalcE(target);
+                damage += aa * 14 + 168 + E.GetDamage(target);
 
             if (R.Level == 2 && R.IsReady()
                 && Player.AttackSpeedMod > 2.01 && Player.AttackSpeedMod <= 2.5)
-                damage += aa * 17 + 168 + CalcE(target);
+                damage += aa * 17 + 168 + E.GetDamage(target);
 
             // R LEVEL 3
             if (R.Level == 3 && R.IsReady()
                 && Player.AttackSpeedMod <= 1)
-                damage += aa * 7 + 216 + CalcE(target);
+                damage += aa * 7 + 216 + E.GetDamage(target);
 
             if (R.Level == 3 && R.IsReady()
                 && Player.AttackSpeedMod > 1.01 && Player.AttackSpeedMod <= 1.5)
-                damage += aa * 10 + 216 + CalcE(target);
+                damage += aa * 10 + 216 + E.GetDamage(target);
 
             if (R.Level == 3 && R.IsReady()
                 && Player.AttackSpeedMod > 1.51 && Player.AttackSpeedMod <= 2)
-                damage += aa * 14 + 216 + CalcE(target);
+                damage += aa * 14 + 216 + E.GetDamage(target);
 
             if (R.Level == 3 && R.IsReady()
                 && Player.AttackSpeedMod > 2.01 && Player.AttackSpeedMod <= 2.5)
-                damage += aa * 17 + 216 + CalcE(target);
+                damage += aa * 17 + 216 + E.GetDamage(target);
 
 
             // R LEVEL 1
@@ -514,7 +517,11 @@ namespace TurboTwitch
                     if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
                         && enemy.Health < edmg + 6 * aa + 5
                         && enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
-                        && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value ||
+                        && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value || Config.Item("UseQ").GetValue<bool>()
+                        && Q.IsReady() && enemy.Health < CalcQ(enemy) && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value &&
+                        enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
+                        
+                        ||
                         //&& Config.Item("ComboEMana").GetValue<Slider>().Value
                         Config.Item("UseQ").GetValue<bool>() && enemy.Health < edmg + 8 * aa + 5 && Q.IsReady()
                         && enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
@@ -582,9 +589,9 @@ namespace TurboTwitch
                     .Where(x => !x.IsZombie)
                     .Where(x => !x.IsDead))
             {
-                if (Player.IsDead || !Config.Item("UseR").GetValue<bool>()
-                    || !R.IsReady() || target.IsInvulnerable
-                    || Player.ManaPercent <  Config.Item("ComboRMana").GetValue<Slider>().Value)
+                if (Player.IsDead
+                    || !R.IsReady() || !target.IsValidTarget())
+                    //|| Player.ManaPercent <  Config.Item("ComboRMana").GetValue<Slider>().Value)
                     return;
 
                 var edmg = E.GetDamage(enemy);
@@ -592,36 +599,46 @@ namespace TurboTwitch
                 var wprediction = W.GetPrediction(enemy);
 
                 //TURRET CHECK
-                if (Config.Item("UseRtower").GetValue<bool>() && enemy.Position.UnderTurret(true)
-                    && Q.IsReady())
-                    return;
+                //if (Config.Item("UseRtower").GetValue<bool>() && enemy.Position.UnderTurret(true)
+                    //&& R.IsReady())
+                    //return;
 
-                //R 1V1 MODE
-                if (Config.Item("UseR").GetValue<KeyBind>().Active && R.IsReady())
+
+                if (Config.Item("UseR").IsActive() && R.IsReady())
                 {
-                    if (enemy.CountEnemiesInRange(R.Range) <= 1 && enemy.Health < CalcR(enemy))
+                    if (enemy.Health < CalcR(enemy))
                         R.Cast();
                 }
-                                                                   // WHEN TO NOT USE R
+                //R 1V1 MODE
+                if (Config.Item("UseR").GetValue<bool>() && R.IsReady())
+                {
+                    if (enemy.Position.CountEnemiesInRange(R.Range) <= 1 && enemy.Health < CalcR(enemy))
+                        R.Cast();
+                }
 
+                //R TEAMFIGHTMODE
+                if (Config.Item("UseR").GetValue<bool>() && Config.Item("UseRT").GetValue<bool>()
+                    && R.IsReady() && enemy.Position.CountEnemiesInRange(852) >= 3 && enemy.Health < CalcR(enemy))
+                    R.Cast();
+
+                //R NORMAL MODE
+
+                                                              
                 //enemy.healt < edmg + AA if in aa range
                 //enemy.healy < edmg  if in E range
-                //enemy.healt < edmg + 6 AA's if in aa range
                 if (Config.Item("UseE").GetValue<bool>() && E.IsReady())
                 {
-                    if (enemy.Health <= edmg + 5 + aa
-                    && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player) ||
-                    enemy.Health <= edmg + 5 && enemy.IsValidTarget(E.Range) || enemy.Health < edmg + 5 + aa * 6
-                    && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
-                    && target.IsValidTarget(E.Range) && Player.ManaPercent <= Config.Item("ComboEMana").GetValue<Slider>().Value)
+                    if (enemy.Health <= edmg + 5 + aa 
+                        && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player) || 
+                        enemy.Health <= edmg + 5 && enemy.IsValidTarget(E.Range))
                         return;
                 }
 
-                //enemy.healt < edmg + 8 AA's && W.IsReady()
+                //enemy.healt < edmg + 2 AA's && W.IsReady()
                 if (Config.Item("UseE").GetValue<bool>() && Config.Item("UseW").GetValue<bool>()
                     && E.IsReady() && W.IsReady())
                 {
-                    if (enemy.Health < edmg + 5 + aa * 6 && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
+                    if (enemy.Health < edmg + 5 + aa * 2 && enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
                         && target.IsValidTarget(E.Range) && Player.ManaPercent <= Config.Item("ComboEMana").GetValue<Slider>().Value
                         && wprediction.Hitchance >= HitChance.High)
                         return;
@@ -629,7 +646,6 @@ namespace TurboTwitch
 
                 // IN STLEATH, enemy.Health < CalcQ 
                 // IN STEALTH, enemy.Health < CalcQ + edmg if in aa range
-                // IN STEALTH, enemy.Health < edmg + 6 AA's if in aa range
                 // IN STEALTH, enemy.Health < edmg if in E range
                 // IN STEALTH, enemy.Health < edmg + aa if in aa range
                 if (Player.HasBuff("TwitchHideInShadows"))
@@ -638,11 +654,7 @@ namespace TurboTwitch
                         && enemy.Health < CalcQ(enemy) && !Player.IsAttackingPlayer
                         || enemy.Distance(Player.Position)
                         < Orbwalking.GetRealAutoAttackRange(Player) && enemy.Health < CalcQ(enemy) + edmg && !Player.IsAttackingPlayer
-                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
-                        || enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player) && !Player.IsAttackingPlayer
-                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
-                        && enemy.Health < edmg + aa * 6 + 5
-                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
+                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value                       
                         || enemy.Health <= edmg + 5
                         && enemy.IsValidTarget(E.Range) && E.IsReady() && !Player.IsAttackingPlayer
                         && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
@@ -654,7 +666,6 @@ namespace TurboTwitch
 
                 // OUT STEALTH AS, enemy.Health < CalcQ 
                 // OUT STEALTH AS, enemy.Health < CalcQ + edmg if in aa range
-                // OUT STEALTH AS, enemy.Health < edmg + 6 AA's if in aa range
                 // OUT STEALTH AS, enemy.Health < edmg if in E range
                 // OUT STEALTH AS, enemy.Health < edmg + aa if in aa range
                 if (Player.HasBuff("TWITCHATTACKSSPEEDQBUFF"))
@@ -663,10 +674,7 @@ namespace TurboTwitch
                        && enemy.Health < CalcQ(enemy)
                        || enemy.Distance(Player.Position)
                        < Orbwalking.GetRealAutoAttackRange(Player) && enemy.Health < CalcQ(enemy) + edmg
-                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
-                       || enemy.Distance(Player.Position) < Orbwalking.GetRealAutoAttackRange(Player)
-                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
-                       && enemy.Health < edmg + aa * 6 + 5
+                       && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value                      
                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value
                        || enemy.Health <= edmg + 5
                        && enemy.IsValidTarget(E.Range) && E.IsReady()
@@ -676,44 +684,12 @@ namespace TurboTwitch
                        && Config.Item("UseE").GetValue<bool>() && Player.ManaPercent >= Config.Item("ComboEMana").GetValue<Slider>().Value)
                         return;
                 }
-                                                                   //WHEN TO USE R
-
-
-
-                //R NORMAL MODE
-                if (Config.Item("UseR").GetValue<bool>() && R.IsReady())
-                {
-                    if (enemy.Health < CalcR(enemy))
-                        R.Cast();
-                }
-
-                //R TEAMFIGHTMODE
-                if (Config.Item("UseR").GetValue<bool>() && Config.Item("UseRT").GetValue<bool>()
-                    && R.IsReady() && enemy.CountEnemiesInRange(852) >= 3 && enemy.Health < CalcR(enemy))
-                    R.Cast();
-
-
-
-
-
-
-
-
-
-
-
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('T', KeyBindType.Press)));
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
+                                                       
 
                 // R if hit 3 enemies and allies are near enemies
                 // R if 1v1 mode is enabled and target gaat uit of AA range en is killable door 2/3 aa's
 
             }
-
-
-
-
         }
         private static void Harass()
         {
@@ -876,16 +852,37 @@ namespace TurboTwitch
             }
 
             foreach (var enemy in
-           ObjectManager.Get<Obj_AI_Hero>()
-               .Where(x => x.IsValidTarget(E.Range))
-               .Where(x => !x.IsZombie)
-               .Where(x => !x.IsDead))
+               ObjectManager.Get<Obj_AI_Hero>()
+                   .Where(x => x.IsValidTarget(E.Range * 3))
+                   .Where(x => !x.IsZombie)
+                   .Where(x => !x.IsDead))
             {
                 var enemypos = Drawing.WorldToScreen(enemy.Position);
-                var estacks = enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count;
 
-                if (Config.Item("DrawEstacks").GetValue<bool>())
-                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, estacks.ToString("stacks"));
+                if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 1)
+                {
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "1 STACK");
+                }
+                if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 2)
+                {
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "2 STACKS");
+                }
+                if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 3)
+                {
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "3 STACKS");
+                }
+                if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 4)
+                {
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "4 STACKS");
+                }
+                if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 5)
+                {
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "5 STACKS");
+                }
+                if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 6)
+                {
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "6 STACKS");
+                }
             }
 
             foreach (var enemy in
