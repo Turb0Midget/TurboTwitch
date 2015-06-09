@@ -30,7 +30,7 @@ namespace TurboTwitch
             Q = new Spell(SpellSlot.Q);
             W = new Spell(SpellSlot.W, 950f);
             E = new Spell(SpellSlot.E, 1200);
-            R = new Spell(SpellSlot.R, 1050); // 850
+            R = new Spell(SpellSlot.R, 1050); 
             Recall = new Spell(SpellSlot.Recall);
 
             W.SetSkillshot(0.25f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
@@ -188,10 +188,8 @@ namespace TurboTwitch
                     QLogic();
                     WLogic();
                     ELogic();
-                    if (Config.Item("UseR").IsActive())
-                    {
-                        RLogic();
-                    }
+                    RLogic();
+
                     Items();
                     break;
                 case Orbwalking.OrbwalkingMode.Mixed:
@@ -396,6 +394,16 @@ namespace TurboTwitch
                         && Q.IsReady() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value)
                         Q.Cast();
 
+                    //Q TEAMFIGHT MODE
+                    if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
+                        && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
+                        && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 10 || Config.Item("UseW").GetValue<bool>()
+                        && enemy.Position.CountEnemiesInRange(1400) >= Config.Item("UseWslider").GetValue<Slider>().Value
+                        && W.IsReady() && wprediction.Hitchance >= HitChance.High && Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
+                        && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
+                        && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 12)
+                        Q.Cast();
+
                     //WHEN TO NOT USE Q
                     if (Player.HasBuff("TwitchHideInShadows") || !Player.IsVisible ||
                         Player.HasBuff("PhosphorusBomb") || Player.HasBuff("BlindMonkTempest") ||
@@ -417,17 +425,7 @@ namespace TurboTwitch
                         && enemy.Position.CountEnemiesInRange(1200) <= Config.Item("UseQslider").GetValue<Slider>().Value
                         && Config.Item("UseW").GetValue<bool>() && W.IsReady()
                         && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value)
-                        Q.Cast();
-
-                    //Q TEAMFIGHT MODE
-                    if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
-                        && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
-                        && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 10 || Config.Item("UseW").GetValue<bool>()
-                        && enemy.Position.CountEnemiesInRange(1400) >= Config.Item("UseWslider").GetValue<Slider>().Value
-                        && W.IsReady() && wprediction.Hitchance >= HitChance.High && Config.Item("UseQ").GetValue<bool>() && Q.IsReady()
-                        && Config.Item("UseQTF").GetValue<bool>() && Player.ManaPercent >= Config.Item("UseQMslider").GetValue<Slider>().Value
-                        && enemy.Position.CountEnemiesInRange(1400) >= 3 && enemy.Health < edmg + aa * 12)
-                        Q.Cast();
+                        Q.Cast();                
                 }
 
             }
@@ -473,24 +471,14 @@ namespace TurboTwitch
         {
             var target = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical);
 
-            foreach (var enemy in
-                ObjectManager.Get<Obj_AI_Hero>()
-                    .Where(x => x.IsValidTarget(R.Range))
-                    .Where(x => !x.IsZombie)
-                    .Where(x => !x.IsDead))
             {
-                if (Player.IsDead
-                    || !R.IsReady() || !target.IsValidTarget())
-                    //|| Player.ManaPercent <  Config.Item("ComboRMana").GetValue<Slider>().Value)
-                    return;
-
-                var edmg = E.GetDamage(enemy);
-                var wprediction = W.GetPrediction(enemy);
+                //if (Player.IsDead
+                //|| !R.IsReady() || !target.IsValidTarget())
+                //|| Player.ManaPercent <  Config.Item("ComboRMana").GetValue<Slider>().Value)
+                //return;
 
                 //TURRET CHECK
                 //if (Config.Item("UseRtower").GetValue<bool>() && enemy.Position.UnderTurret(true)
-                    //&& R.IsReady())
-                    //return;
 
                 if (Config.Item("UseR").IsActive() && R.IsReady())
                 {
