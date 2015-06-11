@@ -73,16 +73,10 @@ namespace TurboTwitch
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOAslider", "Stacks Amount").SetValue(new Slider(4, 6, 1)));
 
             combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('T', KeyBindType.Toggle)));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
             combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Min enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
-
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRtower", "Don't use R if enemy under tower").SetValue(true));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRalways", "[BROKE] Force R if killable").SetValue(false));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRY", "[BROKE] Calculate R damage + Ghostblade when item enabled").SetValue(true));
-            
-
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode when killable").SetValue(true));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
 
             combo.SubMenu("Item Settings").AddItem(new MenuItem("UseItems", "Use Items").SetValue(true));
             combo.SubMenu("Item Settings").AddItem(new MenuItem("ghostblade", "Use Youmuu's Ghostblade").SetValue(false));
@@ -128,9 +122,6 @@ namespace TurboTwitch
             drawing.AddItem(new MenuItem("DrawDisable", "Disable All Drawings").SetValue(false));
             drawing.AddItem(new MenuItem("stealthstatus", "Draw Stealth Recall Status").SetValue(true));
             drawing.AddItem(new MenuItem("DrawEstacks", "Draw E stacks on enemy").SetValue(true));
-            drawing.AddItem(new MenuItem("DrawCalcQ", "Draw CalcQ").SetValue(true));
-            drawing.AddItem(new MenuItem("DrawCalcE", "Draw CalcE").SetValue(true));
-            drawing.AddItem(new MenuItem("DrawCalcR", "Draw CalcR").SetValue(true));
             drawing.AddItem(new MenuItem("DrawW", "Draw W Range").SetValue(new Circle(true, Color.Blue)));
             drawing.AddItem(new MenuItem("DrawE", "Draw E Range").SetValue(new Circle(true, Color.Blue)));
             drawing.AddItem(new MenuItem("DrawR", "Draw R Range").SetValue(new Circle(true, Color.Blue)));
@@ -469,31 +460,83 @@ namespace TurboTwitch
         }
         private static void RLogic()
         {
+
+
             var target = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical);
-
             
-                //if (Player.IsDead
-                //|| !R.IsReady() || !target.IsValidTarget())                
-                //return;
-
-
-
+                if (Player.IsDead
+                || !R.IsReady() || !target.IsValidTarget())                
+                return;
+            if (Player.AttackDelay > 1.00 && Player.AttackDelay < 1.50 && R.IsReady())
+            {
                 if (Config.Item("UseR").IsActive() && R.IsReady())
                 {
-                    if (target.Position.CountEnemiesInRange(R.Range) >= 1 //Config.Item("UseRslider").GetValue<Slider>().Value
+                    if (target.Position.CountEnemiesInRange(R.Range) >= Config.Item("UseRslider").GetValue<Slider>().Value
                         && Player.ManaPercent >= Config.Item("ComboRMana").GetValue<Slider>().Value)
                         R.Cast();
                 }
+            }
 
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('z', KeyBindType.Toggle)));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Min enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
 
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRtower", "Don't use R if enemy under tower").SetValue(true));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRalways", "[BROKE] Force R if killable").SetValue(false));
-            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRY", "[BROKE] Calculate R damage + Ghostblade when item enabled").SetValue(true));
+
+
+
+            // R LEVEL 1
+
+            // 1 AS   =  7 * AA + 120 + CALCE
+            // 1.5 AS = 10 * AA + 120 + CALCE
+            // 2.0 AS = 14 * AA + 120 + CALCE
+            // 2.5 AS = 17 * AA + 120 + CALCE
+
+
+            // R LEVEL 2
+
+            // 1 AS   =  7 * AA + 168 + CALCE
+            // 1.5 AS = 10 * AA + 168 + CALCE
+            // 2.0 AS = 14 * AA + 168 + CALCE
+            // 2.5 AS = 17 * AA + 168 + CALCE
+
+
+            // R LEVEL 3
+
+            // 1 AS   =  7 * AA + 216 + CALCE
+            // 1.5 AS = 10 * AA + 216 + CALCE
+            // 2.0 AS = 14 * AA + 216 + CALCE
+            // 2.5 AS = 17 * AA + 216 + CALCE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('T', KeyBindType.Toggle)));
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Min enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode when killable").SetValue(true));
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
+                //combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
 
 
             
@@ -659,7 +702,7 @@ namespace TurboTwitch
             }
             if (Config.Item("DrawRstatus").GetValue<bool>() && Config.Item("UseR").IsActive())
             {
-                Drawing.DrawText(targetpos[0] + 75, targetpos[1] - 135, Color.Red, "R ENABLED!");
+                Drawing.DrawText(targetpos[0] + 75, targetpos[1] - 140, Color.Red, "R ENABLED!");
             }
             
             foreach (var enemy in
