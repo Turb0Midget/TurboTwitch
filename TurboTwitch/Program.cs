@@ -72,9 +72,9 @@ namespace TurboTwitch
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOA", "E if enemy is out of AA range and has stacks (Lane Pressure)").SetValue(true));
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOAslider", "Stacks Amount").SetValue(new Slider(4, 6, 1)));
 
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('z', KeyBindType.Toggle)));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('T', KeyBindType.Toggle)));
             combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
+            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Min enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
 
             //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
             //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
@@ -471,26 +471,32 @@ namespace TurboTwitch
         {
             var target = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical);
 
-            {
+            
                 //if (Player.IsDead
-                //|| !R.IsReady() || !target.IsValidTarget())
-                //|| Player.ManaPercent <  Config.Item("ComboRMana").GetValue<Slider>().Value)
+                //|| !R.IsReady() || !target.IsValidTarget())                
                 //return;
 
-                //TURRET CHECK
-                //if (Config.Item("UseRtower").GetValue<bool>() && enemy.Position.UnderTurret(true)
+
 
                 if (Config.Item("UseR").IsActive() && R.IsReady())
                 {
-                    if (Player.Position.CountEnemiesInRange(R.Range) >= Config.Item("UseRslider").GetValue<Slider>().Value
+                    if (target.Position.CountEnemiesInRange(R.Range) >= 1 //Config.Item("UseRslider").GetValue<Slider>().Value
                         && Player.ManaPercent >= Config.Item("ComboRMana").GetValue<Slider>().Value)
                         R.Cast();
                 }
 
-        
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('z', KeyBindType.Toggle)));
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Min enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
+
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode").SetValue(false));
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRtower", "Don't use R if enemy under tower").SetValue(true));
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRalways", "[BROKE] Force R if killable").SetValue(false));
+            //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRY", "[BROKE] Calculate R damage + Ghostblade when item enabled").SetValue(true));
 
 
-            }
+            
         }
         private static void Harass()
         {
@@ -670,7 +676,7 @@ namespace TurboTwitch
                 }
                 if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 2)
                 {
-                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "2 STACK!S");
+                    Drawing.DrawText(enemypos[0] - 28, enemypos[1] - 210, Color.HotPink, "2 STACKS!");
                 }
                 if (enemy.Buffs.Find(buff => buff.Name == "twitchdeadlyvenom").Count == 3)
                 {
