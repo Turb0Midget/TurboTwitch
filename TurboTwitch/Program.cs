@@ -72,12 +72,6 @@ namespace TurboTwitch
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOA", "E if enemy is out of AA range and has stacks (Lane Pressure)").SetValue(true));
             combo.SubMenu("Settings E").AddItem(new MenuItem("UseEOOAslider", "Stacks Amount").SetValue(new Slider(4, 6, 1)));
 
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('T', KeyBindType.Toggle)));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Min enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode when killable").SetValue(true));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
-            combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
-
             combo.SubMenu("Item Settings").AddItem(new MenuItem("UseItems", "Use Items").SetValue(true));
             combo.SubMenu("Item Settings").AddItem(new MenuItem("ghostblade", "Use Youmuu's Ghostblade").SetValue(false));
             combo.SubMenu("Item Settings").AddItem(new MenuItem("bork", "Use Blade Of The Ruined King").SetValue(true));
@@ -124,41 +118,7 @@ namespace TurboTwitch
             drawing.AddItem(new MenuItem("DrawEstacks", "Draw E stacks on enemy").SetValue(true));
             drawing.AddItem(new MenuItem("DrawW", "Draw W Range").SetValue(new Circle(true, Color.Blue)));
             drawing.AddItem(new MenuItem("DrawE", "Draw E Range").SetValue(new Circle(true, Color.Blue)));
-            drawing.AddItem(new MenuItem("DrawR", "Draw R Range").SetValue(new Circle(true, Color.Blue)));
-            drawing.AddItem(new MenuItem("DrawRstatus", "Draw R Status").SetValue(true));
-            //drawing.AddItem(new MenuItem("DrawRL", "Draw R Line").SetValue(new Circle(true, System.Drawing.Color.CadetBlue)));
-            //drawing.AddItem(new MenuItem("", "R Enabled").set)
-
-
-            
-
-            // TO DO >  Combo > R LOGIC
-            // TO DO >  R if hit 3 enemies and allies are near enemies
-            // TO DO >  R if 1v1 mode is enabled and target gaat uit of AA range en is killable door 2/3 aa's
-            // TO DO >  Draw > R ACTIVATED ! IN ROOD
-            // TO DO >  Draw > if R toggle enabled : R ENABLED
-            // TO DO >  Draw > R Timer / Q Timer
-
-
-            // TO DO >  Custom assassin mode links clikc rood rechts clikc groen
-            // TO DO >  Interrupt important spells if killable with 2/3 aa > force target (kata R)
-            // TO DO >  STEALH BOMBER 
-
-
-            // Feature DrawingS are blue when ready en turn red when can't be used 
-            // Feature Custom Q Damage Calculations
-            // Feature Custom E Damage Calculations
-
-            //CHECK CALC Q 
-            //CHECK CALC E 
-            //CHECK CALC R 
-            //CHECK DRAW E STACKS ON ENEMY
-            //CHECK USE Q UNDER TOWER
-            //CHECK USE R UNDER TOWER
-            //CHECK NORMAL R
-            //CHECK 1V1 R
-            //CHECK TEAMFIGHT MODE R
-
+         
 
             Config.AddToMainMenu();
 
@@ -178,9 +138,7 @@ namespace TurboTwitch
                 case Orbwalking.OrbwalkingMode.Combo:
                     QLogic();
                     WLogic();
-                    ELogic();
-                    RLogic();
-
+                    ELogic();                  
                     Items();
                     break;
                 case Orbwalking.OrbwalkingMode.Mixed:
@@ -425,9 +383,9 @@ namespace TurboTwitch
         {
 
             var target = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Magical);
-            var ghostblade = ItemData.Youmuus_Ghostblade.GetItem();
-            var bork = ItemData.Blade_of_the_Ruined_King.GetItem();
-            var cutlass = ItemData.Bilgewater_Cutlass.GetItem();
+            var ghostblade = LeagueSharp.Common.Data.ItemData.Youmuus_Ghostblade.GetItem();
+            var bork = LeagueSharp.Common.Data.ItemData.Blade_of_the_Ruined_King.GetItem();
+            var cutlass = LeagueSharp.Common.Data.ItemData.Bilgewater_Cutlass.GetItem();
 
             if (target == null || !target.IsValidTarget()
                || target.IsZombie || target.IsDead)
@@ -457,89 +415,6 @@ namespace TurboTwitch
 
                 ghostblade.Cast();
 
-        }
-        private static void RLogic()
-        {
-
-
-            var target = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical);
-            
-                if (Player.IsDead
-                || !R.IsReady() || !target.IsValidTarget())                
-                return;
-            if (Player.AttackDelay > 1.00 && Player.AttackDelay < 1.50 && R.IsReady())
-            {
-                if (Config.Item("UseR").IsActive() && R.IsReady())
-                {
-                    if (target.Position.CountEnemiesInRange(R.Range) >= Config.Item("UseRslider").GetValue<Slider>().Value
-                        && Player.ManaPercent >= Config.Item("ComboRMana").GetValue<Slider>().Value)
-                        R.Cast();
-                }
-            }
-
-
-
-
-
-            // R LEVEL 1
-
-            // 1 AS   =  7 * AA + 120 + CALCE
-            // 1.5 AS = 10 * AA + 120 + CALCE
-            // 2.0 AS = 14 * AA + 120 + CALCE
-            // 2.5 AS = 17 * AA + 120 + CALCE
-
-
-            // R LEVEL 2
-
-            // 1 AS   =  7 * AA + 168 + CALCE
-            // 1.5 AS = 10 * AA + 168 + CALCE
-            // 2.0 AS = 14 * AA + 168 + CALCE
-            // 2.5 AS = 17 * AA + 168 + CALCE
-
-
-            // R LEVEL 3
-
-            // 1 AS   =  7 * AA + 216 + CALCE
-            // 1.5 AS = 10 * AA + 216 + CALCE
-            // 2.0 AS = 14 * AA + 216 + CALCE
-            // 2.5 AS = 17 * AA + 216 + CALCE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR", "Use R").SetValue(new KeyBind('T', KeyBindType.Toggle)));
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRslider", "Min enemies in range to cast R").SetValue(new Slider(2, 5, 1)));
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseR1v1", "Use R 1 v 1 Mode when killable").SetValue(true));
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("UseRT", "Use R Teamfight Mode").SetValue(true));
-                //combo.SubMenu("Settings R").AddItem(new MenuItem("ComboRMana", "Mana % for R").SetValue(new Slider(5, 100, 0)));
-
-
-            
         }
         private static void Harass()
         {
@@ -682,7 +557,7 @@ namespace TurboTwitch
                     Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Yellow, "RECALLING...");
                 else if (!Player.HasBuff("recall") || !Q.IsReady())
                     Drawing.DrawText(targetpos[0] - 70, targetpos[1] + 100, Color.Red, "Q NOT AVAILABLE");
-                //X - links || X + rechts || Y - boven || Y + onder
+                //X - L || X + R || Y - B || Y + O
             }
 
             if (Config.Item("DrawW").GetValue<Circle>().Active)
@@ -752,13 +627,8 @@ namespace TurboTwitch
                 //if (Config.Item("DrawCalcR").GetValue<bool>())
                    // Drawing.DrawText(epos.X - 50, epos.Y + 100, System.Drawing.Color.Gold,
                         //"CalcR DMG = " + CalcE(enemy).ToString());
-
             }
         }
-
-
-
-
         //if (Config.Item("DrawRLine", true).GetValue<Bool>())
         //{
         //if (Player.HasBuff("TwitchFullAutomatic"))
@@ -770,8 +640,6 @@ namespace TurboTwitch
         //rline.Draw(Config.Item("DrawRL").GetValue<Circle>().Color, 4);
         //}
         //}
-
-
         private static void DBS()
         {
             var blueBuff =
