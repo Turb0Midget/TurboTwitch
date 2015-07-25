@@ -13,7 +13,7 @@ namespace TurboTwitch
         public const string ChampName = "Twitch";
         public static Menu Config;
         public static Orbwalking.Orbwalker Orbwalker;
-        public static Spell Q, W, E, R, Recall;
+        public static Spell Q, W, E, Recall;
         //public static HpBarIndicator Hpi = new HpBarIndicator();
         private static readonly Obj_AI_Hero Player = ObjectManager.Player;
         static void Main(string[] args)
@@ -30,7 +30,6 @@ namespace TurboTwitch
             Q = new Spell(SpellSlot.Q);
             W = new Spell(SpellSlot.W, 950f);
             E = new Spell(SpellSlot.E, 1200);
-            R = new Spell(SpellSlot.R, 1050); 
             Recall = new Spell(SpellSlot.Recall);
 
             W.SetSkillshot(0.25f, 250f, 1400f, false, SkillshotType.SkillshotCircle);
@@ -54,13 +53,14 @@ namespace TurboTwitch
 
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQ", "Use Q").SetValue(true));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQMslider", "Mana % for Q").SetValue(new Slider(10, 100, 0)));
-            combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQslider", "Max enemies around to use Q").SetValue(new Slider(1, 5, 1)));
+            combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQslider", "Max enemies to use Q").SetValue(new Slider(2, 5, 1)));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQTF", "Use Q Teamfight mode").SetValue(true));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQ1v1", "Use Q in 1 v 1 ?").SetValue(false));
             combo.SubMenu("Settings Q").AddItem(new MenuItem("UseQtower", "Don't use Q if enemy under tower").SetValue(true));
 
             combo.SubMenu("Settings W").AddItem(new MenuItem("UseW", "Use W").SetValue(true));
-            combo.SubMenu("Settings W").AddItem(new MenuItem("UseWslider", "Minimum enemies to use W").SetValue(new Slider(1, 5, 1)));
+            combo.SubMenu("Settings W").AddItem(new MenuItem("UseWslider", "Minimum enemies to use W").SetValue(new Slider(2, 5, 1)));
+            //combo.SubMenu("Settings W").AddItem(new MenuItem("UseWOnly", "Use W only when enough mana for E").SetValue(true));
             combo.SubMenu("Settings W").AddItem(new MenuItem("AutoW", "Auto W when hit enemy").SetValue(true));
             combo.SubMenu("Settings W").AddItem(new MenuItem("AutoWslider", "Enemy count").SetValue(new Slider(4, 5, 1)));
 
@@ -85,15 +85,15 @@ namespace TurboTwitch
             lasthit.AddItem(new MenuItem("LasthitEslider", "Minimun minions to kill with E").SetValue(new Slider(3, 10, 0)));
             lasthit.AddItem(new MenuItem("LasthitEMana", "Mana % for E").SetValue(new Slider(40, 100, 0)));
 
-            laneclear.AddItem(new MenuItem("LaneclearW", "Laneclear with W").SetValue(true));
+            laneclear.AddItem(new MenuItem("LaneclearW", "Laneclear with W").SetValue(false));
             laneclear.AddItem(new MenuItem("LaneclearWhit", "Minions to hit with W").SetValue(new Slider(3, 10, 0)));
             laneclear.AddItem(new MenuItem("LaneclearE", "Laneclear with E").SetValue(true));
             laneclear.AddItem(new MenuItem("LaneclearEpoison", "Minimum minions to be poisoned").SetValue(new Slider(3, 10, 0)));
             laneclear.AddItem(new MenuItem("LaneclearEstacks", "Minimum Poison stacks per minion to use E").SetValue(new Slider(3, 10, 0)));
-            laneclear.AddItem(new MenuItem("LaneclearMana", "Mana % for laneclear").SetValue(new Slider(30, 100, 0)));
+            laneclear.AddItem(new MenuItem("LaneclearMana", "Mana % for laneclear").SetValue(new Slider(40, 100, 0)));
 
-            jungleclear.AddItem(new MenuItem("JungleclearW", "Jungleclear with W").SetValue(true));
-            jungleclear.AddItem(new MenuItem("JungleclearE", "Jungleclear with E").SetValue(true));
+            jungleclear.AddItem(new MenuItem("JungleclearW", "Jungleclear with W").SetValue(false));
+            jungleclear.AddItem(new MenuItem("JungleclearE", "Jungleclear with E").SetValue(false));
             jungleclear.AddItem(new MenuItem("JungleclearMana", "Jungleclear Mana").SetValue(new Slider(40, 100, 0)));
 
             harass.AddItem(new MenuItem("HarassE", "Use E").SetValue(true));
@@ -102,14 +102,14 @@ namespace TurboTwitch
 
             killsteal.AddItem(new MenuItem("KSE", "Killsteal with E").SetValue(true));
 
-            //misc.AddItem(new MenuItem("Trinket", "Auto Buy Trinket").SetValue(new StringList(new[] { Scrying.Orb.ToString(), Warding.Totem.ToString(), Sweeper.Lens.ToString() }, 3)));
+            //misc.AddItem(new MenuItem("Trinket", "Auto Buy Trinket").SetValue(new StringList(new[] {Scrying.Orb.ToString(), Warding.Totem.ToString(), Sweeper.Lens.ToString() }, 3)));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKS", "Secure Buffs / Objectives with E").SetValue(true));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSB", "Secure Blue with E").SetValue(false));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSR", "Secure Red with E").SetValue(false));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSD", "Secure Dragon with E").SetValue(true));
             misc.SubMenu("Jungle Secure").AddItem(new MenuItem("JungleKSBAR", "Secure Baron with E").SetValue(true));
             misc.AddItem(new MenuItem("recall", "StealthRecall").SetValue(new KeyBind('z', KeyBindType.Press)));
-            misc.AddItem(new MenuItem("AntiGapW", "Auto W in gapclosers").SetValue(true));
+            misc.AddItem(new MenuItem("AntiGapW", "Auto W on gapclosers").SetValue(true));
             misc.AddItem(new MenuItem("AutoQ", "Auto use Q when below hp %").SetValue(false));
             misc.AddItem(new MenuItem("AutoQHP", "HP %").SetValue(new Slider(10, 100, 0)));
 
@@ -218,6 +218,49 @@ namespace TurboTwitch
             {
                 var wprediction = W.GetPrediction(enemy);
 
+                if (Config.Item("UseWonly").GetValue<bool>())
+                {
+                    if (E.Level == 1)
+                    {
+                        if (
+                        W.IsReady() && wprediction.Hitchance >= HitChance.High
+                        && enemy.Position.CountEnemiesInRange(W.Width) >= Config.Item("UseWslider").GetValue<Slider>().Value
+                        && Player.Mana >= 50) 
+                    W.Cast(enemy);
+                    }
+                    if (E.Level == 2)
+                    {
+                        if (
+                        W.IsReady() && wprediction.Hitchance >= HitChance.High
+                        && enemy.Position.CountEnemiesInRange(W.Width) >= Config.Item("UseWslider").GetValue<Slider>().Value
+                        && Player.Mana >= 60)
+                            W.Cast(enemy);
+                    }
+                    if (E.Level == 3)
+                    {
+                        if (
+                        W.IsReady() && wprediction.Hitchance >= HitChance.High
+                        && enemy.Position.CountEnemiesInRange(W.Width) >= Config.Item("UseWslider").GetValue<Slider>().Value
+                        && Player.Mana >= 70)
+                            W.Cast(enemy);
+                    }
+                    if (E.Level == 4)
+                    {
+                        if (
+                        W.IsReady() && wprediction.Hitchance >= HitChance.High
+                        && enemy.Position.CountEnemiesInRange(W.Width) >= Config.Item("UseWslider").GetValue<Slider>().Value
+                        && Player.Mana >= 80)
+                            W.Cast(enemy);
+                    }
+                    if (E.Level == 5)
+                    {
+                        if (
+                        W.IsReady() && wprediction.Hitchance >= HitChance.High
+                        && enemy.Position.CountEnemiesInRange(W.Width) >= Config.Item("UseWslider").GetValue<Slider>().Value
+                        && Player.Mana >= 90)
+                            W.Cast(enemy);
+                    }
+                }                                                         
                 if (Config.Item("UseW").GetValue<bool>())
                 {
                     if (W.IsReady() && wprediction.Hitchance >= HitChance.High
@@ -247,9 +290,6 @@ namespace TurboTwitch
                 }
             }
         }
-
-
-
         private static int CalcQ(Obj_AI_Base target)
         {
             var aa = Player.GetAutoAttackDamage(target, true);
@@ -277,8 +317,6 @@ namespace TurboTwitch
 
             return (int)damage;
         }
-
-
         private static void ELogic()
         {
             foreach (var enemy in
@@ -569,17 +607,7 @@ namespace TurboTwitch
             {
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, E.Range, E.IsReady() ?
                     Config.Item("DrawE").GetValue<Circle>().Color : System.Drawing.Color.Red);
-            }
-            if (Config.Item("DrawR").GetValue<Circle>().Active)
-            {
-                Render.Circle.DrawCircle(ObjectManager.Player.Position, R.Range, R.IsReady() ?
-                    Config.Item("DrawR").GetValue<Circle>().Color : System.Drawing.Color.Red);
-            }
-            if (Config.Item("DrawRstatus").GetValue<bool>() && Config.Item("UseR").IsActive())
-            {
-                Drawing.DrawText(targetpos[0] + 75, targetpos[1] - 140, Color.Red, "R ENABLED!");
-            }
-            
+            }                      
             foreach (var enemy in
                ObjectManager.Get<Obj_AI_Hero>()
                    .Where(x => x.IsValidTarget(E.Range * 3))

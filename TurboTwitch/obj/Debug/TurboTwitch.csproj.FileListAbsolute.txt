@@ -8,6 +8,5 @@ C:\Users\larsk_000\Documents\GitHub\TurboTwitch\TurboTwitch\bin\Release\SharpDX.
 C:\Users\larsk_000\Documents\GitHub\TurboTwitch\TurboTwitch\bin\Release\clipper_library.dll
 C:\Users\larsk_000\Documents\GitHub\TurboTwitch\TurboTwitch\bin\Release\LeagueSharp.Sandbox.dll
 C:\Users\larsk_000\Documents\GitHub\TurboTwitch\TurboTwitch\bin\Release\LeagueSharp.xml
-C:\Users\larsk_000\Documents\GitHub\TurboTwitch\TurboTwitch\obj\Debug\TurboTwitch.csprojResolveAssemblyReference.cache
 C:\Users\larsk_000\Documents\GitHub\TurboTwitch\TurboTwitch\obj\Debug\TurboTwitch.exe
 C:\Users\larsk_000\Documents\GitHub\TurboTwitch\TurboTwitch\obj\Debug\TurboTwitch.pdb
